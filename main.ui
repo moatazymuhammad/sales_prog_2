@@ -139,7 +139,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="tab_5">
      <attribute name="title">
@@ -164,7 +164,7 @@
        <string notr="true">background-color: rgb(255, 243, 238);</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_6">
        <attribute name="title">
@@ -4045,6 +4045,14 @@
        <column>
         <property name="text">
          <string>PRICE</string>
+        </property>
+        <property name="textAlignment">
+         <set>AlignCenter</set>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>EXPIRY</string>
         </property>
         <property name="textAlignment">
          <set>AlignCenter</set>

@@ -373,6 +373,10 @@ class Main(QMainWindow, MainUi):
                 VALUES(%s,%s,%s)
                 ''',(empname,date,time))
             self.db.commit()
+            global DEFAULT_EMPLOYEE
+            global DEFAULT_BRANCH
+            DEFAULT_EMPLOYEE= self.comboBox_33.currentText()
+            DEFAULT_BRANCH= self.comboBox_32.currentText()
             self.cur.execute('''
                INSERT INTO default_branch(branch, log_date,log_time)
                VALUES(%s,%s,%s)
@@ -1355,7 +1359,7 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''
                INSERT INTO items_moves(name, amount, date, time, employee, store1,move,operation,reason)
                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-               ''',(name,amount,date,time,employee,store,'out','edit',reason))
+               ''',(name,amount,date,time,DEFAULT_EMPLOYEE,store,'out','edit',reason))
             self.db.commit()
 
             self.cur.execute('''SELECT name, quantity FROM item_quant
@@ -1409,7 +1413,7 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''
                INSERT INTO items_moves(name, amount, date, time, employee, store1,move,operation,reason)
                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-               ''',(name,amount,date,time,employee,store,'in','edit',reason))
+               ''',(name,amount,date,time,DEFAULT_EMPLOYEE,store,'in','edit',reason))
             self.db.commit()
             self.cur.execute('''SELECT name, quantity FROM item_quant
             WHERE name=%s AND store=%s''',(name,store))
@@ -1485,11 +1489,6 @@ class Main(QMainWindow, MainUi):
         amount=self.lineEdit_28.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
         balance1=self.lineEdit_26.text()
         store1=self.comboBox_19.currentText()
         store2=self.comboBox_20.currentText()
@@ -1511,14 +1510,8 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''
             INSERT INTO items_moves(name, amount, date, time, employee, store1,store2,operation)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(name,amount,date,time,employee,store1,store2,'move'))
+            ''',(name,amount,date,time,DEFAULT_EMPLOYEE,store1,store2,'move'))
             self.db.commit()
-            ###################
-            # self.cur.execute('''
-            # INSERT INTO items_moves(name, amount, date, time, employee, store,move,operation)
-            # VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            # ''',(name,amount,date,time,employee,store2,'in','move'))
-            # self.db.commit()
             ####################
             self.cur.execute('''SELECT name, quantity FROM item_quant
             WHERE name=%s AND store=%s''',(name,store1))
@@ -1657,7 +1650,6 @@ class Main(QMainWindow, MainUi):
             self.textEdit_6.setText('')
             self.lineEdit_60.setText('')
 
-         #   print('success')
 ##############################################
     def vendor_find(self):##################find vendor to edit info
         name=self.lineEdit_15.text()
@@ -1693,7 +1685,6 @@ class Main(QMainWindow, MainUi):
                 self.textEdit_7.setText(vendor[0][1])
                 self.pushButton_26.setEnabled(True)
 
-              #  print('success')
 #########################################
     def vendor_new(self):############start screen over
         self.lineEdit_15.setEnabled(True)
@@ -1751,10 +1742,6 @@ class Main(QMainWindow, MainUi):
             self.textEdit_7.setText('')
             self.lineEdit_59.setText('')
 
-           # print('success')
-
-#####################################
-
 ##################################### stores and branchs tab
 
   
@@ -1780,9 +1767,6 @@ class Main(QMainWindow, MainUi):
 
             self.lineEdit_11.setText('')
             self.textEdit_3.setText('')
-
-            #('success')
-############################################
 
 ###############################################
     def branch_save(self):##################save new or the edit
@@ -1811,21 +1795,12 @@ class Main(QMainWindow, MainUi):
 #####################################finance tab
 
     def safe_move_money_out(self):##################save money move from safe
-        self.cur.execute('''
-            SELECT branch FROM default_branch
-            ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
         reason=self.comboBox_15.currentText()
         amount=self.lineEdit_32.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         comment=self.textEdit_10.toPlainText()
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
+
         if self.lineEdit_32.text()=='':
             QMessageBox.about(self, 'caution', 'inter money amount')
         elif not isfloat(amount):
@@ -1837,35 +1812,26 @@ class Main(QMainWindow, MainUi):
             INSERT INTO safe_moves(branch,reason,amount,date,time,
             comment,employee,move,source)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(branch,reason,amount,date,time,comment,employee,'out','transfer'))
+            ''',(DEFAULT_BRANCH,reason,amount,date,time,comment,DEFAULT_EMPLOYEE,'out','transfer'))
             self.db.commit()
             if self.comboBox_15.currentIndex()==0:
                 self.cur.execute('''
                 INSERT INTO drawer_moves(branch,reason,amount,date,time,
                 comment,employee,move,source)
                 VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                ''',(branch,'from safe',amount,date,time,comment,employee,'in','transfer'))
+                ''',(DEFAULT_BRANCH,'from safe',amount,date,time,comment,DEFAULT_EMPLOYEE,'in','transfer'))
                 self.db.commit()
             self.lineEdit_32.setText('')
             self.textEdit_10.setText('')
-           # print('success')
+
 ################################################
     def safe_move_money_in(self):##################save money move from safe
-        self.cur.execute('''
-            SELECT branch FROM default_branch
-            ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         reason=self.comboBox_15.currentText()
         amount=self.lineEdit_32.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         comment=self.textEdit_10.toPlainText()
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
         if self.lineEdit_32.text()=='':
             QMessageBox.about(self, 'caution', 'inter money amount')
         elif not isfloat(amount):
@@ -1879,7 +1845,7 @@ class Main(QMainWindow, MainUi):
             INSERT INTO safe_moves(branch,reason,amount,date,time,
             comment,employee,move,source)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(branch,reason,amount,date,time,comment,employee,'in','transfer'))
+            ''',(DEFAULT_BRANCH,reason,amount,date,time,comment,DEFAULT_EMPLOYEE,'in','transfer'))
             self.db.commit()
            
             self.lineEdit_32.setText('')
@@ -1887,21 +1853,13 @@ class Main(QMainWindow, MainUi):
 ##################################################
 
     def drawer_move_money(self):##################save money move from drawer
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         reason=self.comboBox_21.currentText()
         amount=self.lineEdit_30.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         comment=self.textEdit_11.toPlainText()
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
+        
         if self.lineEdit_30.text()=='':
             QMessageBox.about(self, 'caution', 'inter money amount')
         elif not isfloat(amount):
@@ -1913,18 +1871,19 @@ class Main(QMainWindow, MainUi):
             INSERT INTO drawer_moves(branch,reason,amount,date,time,
             comment,employee,move,source)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(branch,reason,amount,date,time,comment,employee,'out','transfer'))
+            ''',(DEFAULT_BRANCH,reason,amount,date,time,comment,DEFAULT_EMPLOYEE,'out','transfer'))
             self.db.commit()
             if self.comboBox_21.currentIndex()==0:
                 self.cur.execute('''
                 INSERT INTO safe_moves(branch,reason,amount,date,time,
                 comment,employee,move,source)
                 VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                ''',(branch,'from drawer',amount,date,time,comment,employee,'in','transfer'))
+                ''',(DEFAULT_BRANCH,'from drawer',amount,date,time,comment,DEFAULT_EMPLOYEE,'in','transfer'))
                 self.db.commit()
+                
             self.lineEdit_30.setText('')
             self.textEdit_11.setText('')
-            #print('success')
+
 #############################################################################
 
     def clven_startover(self):################start screen over
@@ -1982,16 +1941,7 @@ class Main(QMainWindow, MainUi):
         amount=self.lineEdit_23.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         balance=self.lineEdit_111.text()
         comment=self.textEdit_13.toPlainText()
         if amount=='' or not isfloat(amount):
@@ -2001,15 +1951,19 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''INSERT INTO client_balance(name,
             amount,date,time,move,reason,employee,branch)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(name,amount,date,time,'in','transfer',employee,branch))
+            ''',(name,amount,date,time,'in','transfer',DEFAULT_EMPLOYEE,DEFAULT_BRANCH))
             self.db.commit()
             if self.comboBox_10.currentText() == 'SAFE':
-                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'client',amount,date,time,comment,employee,'in',name))
+                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'client',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'in',name))
                 self.db.commit()
             else:
-                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'client',amount,date,time,comment,employee,'in',name))
+                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'client',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'in',name))
                 self.db.commit()
                 
         
@@ -2027,16 +1981,6 @@ class Main(QMainWindow, MainUi):
         amount=self.lineEdit_23.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
         balance=self.lineEdit_111.text()
         comment=self.textEdit_13.toPlainText()
         if amount=='' or not isfloat(amount):
@@ -2047,16 +1991,20 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''INSERT INTO client_balance(name,
             amount,date,time,move,reason,employee,branch)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(name,amount,date,time,'out','transfer',employee,branch))
+            ''',(name,amount,date,time,'out','transfer',DEFAULT_EMPLOYEE,DEFAULT_BRANCH))
             self.db.commit()
             
             if self.comboBox_10.currentText() == 'SAFE':
-                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'client',amount,date,time,comment,employee,'out',name))
+                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'client',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'out',name))
                 self.db.commit()
             else:
-                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'client',amount,date,time,comment,employee,'out',name))
+                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'client',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'out',name))
                 self.db.commit()
             
             self.lineEdit_29.setEnabled(True)
@@ -2106,16 +2054,6 @@ class Main(QMainWindow, MainUi):
         amount=self.lineEdit_24.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
         balance=self.lineEdit_112.text()
         comment=self.textEdit_14.toPlainText()
         if amount=='' or not isfloat(amount):
@@ -2124,16 +2062,20 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''INSERT INTO vendor_balance(name,
             amount,date,time,move,reason,employee,branch)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(name,amount,date,time,'in','transfer',employee,branch))
+            ''',(name,amount,date,time,'in','transfer',DEFAULT_EMPLOYEE,DEFAULT_BRANCH))
             self.db.commit()
             
             if self.comboBox_12.currentText() == 'SAFE':
-                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'vendor',amount,date,time,comment,employee,'in',name))
+                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'vendor',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'in',name))
                 self.db.commit()
             else:
-                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'vendor',amount,date,time,comment,employee,'in',name))
+                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,
+                comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'vendor',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'in',name))
                 self.db.commit()
             self.lineEdit_31.setEnabled(True)
             self.lineEdit_31.setText('')
@@ -2149,16 +2091,6 @@ class Main(QMainWindow, MainUi):
         amount=self.lineEdit_24.text()
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
         balance=self.lineEdit_112.text()
         comment=self.textEdit_14.toPlainText()
         if amount=='' or not isfloat(amount):
@@ -2169,16 +2101,20 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''INSERT INTO vendor_balance(name,
             amount,date,time,move,reason,employee,branch)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-            ''',(name,amount,date,time,'out','transfer',employee,branch))
+            ''',(name,amount,date,time,'out','transfer',DEFAULT_EMPLOYEE,DEFAULT_BRANCH))
             self.db.commit()
             
             if self.comboBox_12.currentText() == 'SAFE':
-                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'vendor',amount,date,time,comment,employee,'out',name))
+                self.cur.execute('''INSERT INTO safe_moves(branch,reason,amount,date,
+                time,comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'vendor',amount,date,
+                time,comment,DEFAULT_EMPLOYEE,'out',name))
                 self.db.commit()
             else:
-                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,time,comment,employee,move,source)
-                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(branch, 'vendor',amount,date,time,comment,employee,'out',name))
+                self.cur.execute('''INSERT INTO drawer_moves(branch,reason,amount,date,
+                time,comment,employee,move,source)
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)''',(DEFAULT_BRANCH, 'vendor',amount,date,time,
+                comment,DEFAULT_EMPLOYEE,'out',name))
                 self.db.commit()
                 
             self.lineEdit_31.setEnabled(True)
@@ -2239,11 +2175,7 @@ class Main(QMainWindow, MainUi):
     def employee_leaving(self):#save date and time of employee comming
         name=self.comboBox_28.currentText()
         comment=' <> '+ self.textEdit_15.toPlainText()
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         self.cur.execute('''SELECT date, time_in, time_out, comment FROM employee_absence WHERE date=%s AND name=%s''',(date,name))
@@ -2265,21 +2197,17 @@ class Main(QMainWindow, MainUi):
     def employee_comming(self):#save date and time of employee leaving
         name=self.comboBox_28.currentText()
         comment=self.textEdit_15.toPlainText()
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        branch=branchs[-1][0]
+       
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         
         self.cur.execute('''SELECT date , time_out FROM employee_absence where date=%s AND name=%s''',(date,name))
         leaving=self.cur.fetchall()
-        #print (leaving[-1])
+
         if leaving==():
             self.cur.execute('''
             INSERT INTO employee_absence(name,branch,date, time_in, comment)
-            VALUES(%s,%s,%s,%s,%s)''',(name,branch,date,time,comment))
+            VALUES(%s,%s,%s,%s,%s)''',(name,DEFAULT_BRANCH,date,time,comment))
             self.db.commit()
             self.textEdit_15.setText('')
             QMessageBox.about(self,'hint','done')
@@ -2287,7 +2215,7 @@ class Main(QMainWindow, MainUi):
         elif leaving[-1][1]!= None:
             self.cur.execute('''
             INSERT INTO employee_absence(name,branch,date, time_in, comment)
-            VALUES(%s,%s,%s,%s,%s)''',(name,branch,date,time,comment))
+            VALUES(%s,%s,%s,%s,%s)''',(name,DEFAULT_BRANCH,date,time,comment))
             self.db.commit()
             self.textEdit_15.setText('')
             QMessageBox.about(self,'hint','done')
@@ -2339,9 +2267,7 @@ class Main(QMainWindow, MainUi):
     def sell_search(self):
         barcode=self.lineEdit_38.text()
         name=self.lineEdit_39.text()
-        self.cur.execute('''SELECT branch FROM default_branch''')
-        branchs=self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         fast_code=self.lineEdit_78.text()
         expiry=self.comboBox_23.currentText()
 
@@ -2426,7 +2352,7 @@ class Main(QMainWindow, MainUi):
             if data[0][4]=='1':
 
                 self.cur.execute('''SELECT quantity ,price,expiry FROM item_quant
-                    WHERE name=%s AND store=%s''',(name, branch))
+                    WHERE name=%s AND store=%s''',(name, DEFAULT_BRANCH))
                 quants=self.cur.fetchall()
                 if quants==():
                     QMessageBox.about(self,'caution','not enough balance')
@@ -2448,7 +2374,7 @@ class Main(QMainWindow, MainUi):
             else:
                 
                 self.cur.execute('''SELECT quantity ,price,special_code FROM item_quant
-                    WHERE name=%s AND store=%s''',(name, branch))
+                    WHERE name=%s AND store=%s''',(name, DEFAULT_BRANCH))
                 quants=self.cur.fetchall()
                 if quants==():
                     QMessageBox.about(self,'caution','not enough balance')
@@ -2479,16 +2405,7 @@ class Main(QMainWindow, MainUi):
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
         price=self.lineEdit_81.text()
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        store=branchs[-1][0]
+        
         balance=self.lineEdit_41.text()
 
         if self.lineEdit_17.text()=='':
@@ -2512,9 +2429,11 @@ class Main(QMainWindow, MainUi):
 
             else:
                 self.cur.execute('''
-                        INSERT INTO temp_bill(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,move)
+                        INSERT INTO temp_bill(name,amount,date,time,price,employee,store,
+                        total,bill_id,cl_vend,move)
                         VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                        ''',(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,'sell'))
+                        ''',(name,amount,date,time,price,DEFAULT_EMPLOYEE,DEFAULT_BRANCH,
+                        total,bill_id,cl_vend,'sell'))
                 self.db.commit()
 
                 self.cur.execute('''SELECT id,name,amount,price,total,move
@@ -2711,9 +2630,7 @@ class Main(QMainWindow, MainUi):
     def return_sell_search(self):
         barcode=self.lineEdit_45.text()
         name=self.lineEdit_46.text()
-        self.cur.execute('''SELECT branch FROM default_branch''')
-        branchs=self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         fast_code=self.lineEdit_89.text()
 
         if name=='' and barcode == '' and fast_code=='' :
@@ -2807,7 +2724,7 @@ class Main(QMainWindow, MainUi):
         if data!=():
 
             self.cur.execute('''SELECT quantity FROM item_quant
-                WHERE name=%s AND store=%s''',(name, branch))
+                WHERE name=%s AND store=%s''',(name, DEFAULT_BRANCH))
             quants=self.cur.fetchall()
             if quants!=():
                 self.lineEdit_49.setText(str(quants[0][0]))
@@ -2826,23 +2743,12 @@ class Main(QMainWindow, MainUi):
         time=datetime.datetime.now().strftime('%H:%M')
         price=self.lineEdit_82.text()
         total_bill=0
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        store=branchs[-1][0]
+        
         balance=self.lineEdit_49.text()
 
-        # self.cur.execute('''SELECT number FROM bill_no''')
-        # numbers=self.cur.fetchall()
-        bill_id=self.lineEdit_91.text()#int(numbers[-1][0])+1
-       # print(bill_id)
-        #self.lineEdit_91.setText(str(bill_id))
+        
+        bill_id=self.lineEdit_91.text()#
+       
         if self.lineEdit_57.text()=='':
             cl_vend='cash'
         else:
@@ -2861,7 +2767,8 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''
                     INSERT INTO temp_bill(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,move)
                     VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ''',(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,'rsell'))
+                    ''',(name,amount,date,time,price,DEFAULT_EMPLOYEE,DEFAULT_BRANCH,
+                    total,bill_id,cl_vend,'rsell'))
             self.db.commit()
 
             self.cur.execute('''SELECT id,name,amount,price,total
@@ -3094,9 +3001,7 @@ class Main(QMainWindow, MainUi):
 
         barcode=self.lineEdit_47.text()
         name=self.lineEdit_63.text()
-        self.cur.execute('''SELECT branch FROM default_branch''')
-        branchs=self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         fast_code=self.lineEdit_93.text()
 
         if name=='' and barcode == '' and fast_code=='' :
@@ -3170,7 +3075,7 @@ class Main(QMainWindow, MainUi):
 
             name=self.lineEdit_63.text()
             self.cur.execute('''SELECT SUM(quantity) FROM item_quant
-                WHERE name=%s AND store=%s''',(name, branch))
+                WHERE name=%s AND store=%s''',(name, DEFAULT_BRANCH))
             quants=self.cur.fetchall()
             print (quants)
             if quants==() or quants[0][0] == None:
@@ -3200,16 +3105,7 @@ class Main(QMainWindow, MainUi):
         price=self.lineEdit_85.text()
         cost=self.lineEdit_119.text()
         expiry=self.dateEdit_36.date().toPyDate()
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        store=branchs[-1][0]
+        
         balance=self.lineEdit_65.text()
 
         bill_id=self.lineEdit_71.text()#int(numbers[-1][0])+1
@@ -3236,10 +3132,11 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''INSERT INTO temp_bill(name,special_code,amount,
             date,time,price,employee,expiry,store,total,bill_id,cl_vend,move,cost)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',
-            (name,special_code,amount,date,time,price,employee,expiry,store,total,bill_id,cl_vend,'pur',cost))
+            (name,special_code,amount,date,time,price,DEFAULT_EMPLOYEE,expiry,DEFAULT_BRANCH,
+            total,bill_id,cl_vend,'pur',cost))
             self.db.commit()
 
-            self.cur.execute('''SELECT id,name,amount,cost,total,move,price
+            self.cur.execute('''SELECT id,name,amount,cost,total,price,expiry
                             FROM temp_bill WHERE move=%s''',('pur'))
 
             while self.tableWidget_5.rowCount()>0:
@@ -3461,9 +3358,7 @@ class Main(QMainWindow, MainUi):
 
         barcode=self.lineEdit_72.text()
         name=self.lineEdit_73.text()
-        self.cur.execute('''SELECT branch FROM default_branch''')
-        branchs=self.cur.fetchall()
-        branch=branchs[-1][0]
+        
         fast_code=self.lineEdit_101.text()
 
         if name=='' and barcode == '' and fast_code=='' :
@@ -3526,7 +3421,7 @@ class Main(QMainWindow, MainUi):
 
         if data!=():
             self.cur.execute('''SELECT quantity FROM item_quant
-                WHERE name=%s AND store=%s''',(name, branch))
+                WHERE name=%s AND store=%s''',(name, DEFAULT_BRANCH))
             quants=self.cur.fetchall()
             if quants==():
                 QMessageBox.about(self,'caution','not available balance1')
@@ -3554,16 +3449,7 @@ class Main(QMainWindow, MainUi):
         time=datetime.datetime.now().strftime('%H:%M')
         price=self.lineEdit_96.text()
         total_bill=0
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
-        self.cur.execute('''
-        SELECT branch FROM default_branch
-        ''')
-        branchs = self.cur.fetchall()
-        store=branchs[-1][0]
+        
         balance=self.lineEdit_75.text()
 
         bill_id=self.lineEdit_103.text()#int(numbers[-1][0])+1
@@ -3586,7 +3472,7 @@ class Main(QMainWindow, MainUi):
             self.cur.execute('''
                     INSERT INTO temp_bill(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,move)
                     VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ''',(name,amount,date,time,price,employee,store,total,bill_id,cl_vend,'rpur'))
+                    ''',(name,amount,date,time,price,DEFAULT_EMPLOYEE,DEFAULT_BRANCH,total,bill_id,cl_vend,'rpur'))
             self.db.commit()
 
             self.cur.execute('''SELECT id,name,amount,price,total
@@ -4869,11 +4755,7 @@ class Main(QMainWindow, MainUi):
         new_order=[]
         date=datetime.date.today()
         time=datetime.datetime.now().strftime('%H:%M')
-        self.cur.execute('''
-            SELECT employee FROM default_employee
-            ''')
-        emps = self.cur.fetchall()
-        employee=emps[-1][0]
+        
         store=self.comboBox_46.currentText()
         self.cur.execute('''SELECT number FROM bill_no''')
         nums=self.cur.fetchall()
@@ -4888,7 +4770,7 @@ class Main(QMainWindow, MainUi):
         else:
           
             for line in order:
-                new_order.append([line[0],line[1],date,time,line[2],employee,store,line[3],bill_id,cl_vend,'pur'])
+                new_order.append([line[0],line[1],date,time,line[2],DEFAULT_EMPLOYEE,store,line[3],bill_id,cl_vend,'pur'])
             
             for data in new_order:
                 self.cur.execute('''INSERT INTO temp_bill(name,amount,date,time,price,employee,
